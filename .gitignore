@@ -1,0 +1,16 @@
+# .gitignore
+
+# 1. Security: NEVER upload API keys
+.env
+.DS_Store
+
+# 2. Python System Files (Heavy/Useless to upload)
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# 3. Data (Optional: If  PDFs are huge, ignore them. 
+# For this project, it's okay to upload small PDFs so M1 shares them easily)
+# data/
