@@ -1,43 +1,89 @@
 import os
+import json
+import numpy as np
+import faiss
 from dotenv import load_dotenv
+from sentence_transformers import SentenceTransformer
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
 
-# Load keys
+# 1. Load Environment & Constants
 load_dotenv()
+EMBEDDINGS_DIR = "embeddings" # Relative path (works on everyone's machine)
+INDEX_FILE = os.path.join(EMBEDDINGS_DIR, "wiki_faiss.index")
+DOC_STORE_FILE = os.path.join(EMBEDDINGS_DIR, "doc_store.json")
 
+# 2. Setup LLM (The Brain)
 llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0)
 
-# --- YOUR CORE LOGIC ---
+# 3. Setup Embedding Model (The Translator)
+# We must use the SAME model M1 used to create the database
+print("⏳ Loading embedding model...")
+embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
-def mock_retrieve(query):
-    """
-    TEMPORARY FUNCTION: Simulates Mariam's Vector DB.
-    Use this to test your prompt engineering without waiting for the DB.
-    """
-    print(f"DEBUG: Mock searching for '{query}'...")
-    
-    # Simulating that we found these 2 documents in the database
-    return [
-        "Document A: RAG systems combine a retriever and a generator.",
-        "Document B: The retrieval step finds relevant docs, and the generator creates the answer."
-    ]
+# 4. Load the Vector Database (The Memory)
+print("⏳ Loading Vector Database...")
+try:
+    index = faiss.read_index(INDEX_FILE)
+    with open(DOC_STORE_FILE, "r", encoding="utf-8") as f:
+        doc_store = json.load(f)
+    print("✅ Database loaded successfully!")
+except Exception as e:
+    print(f"❌ Error loading database: {e}")
+    print("⚠️ Make sure M1 has run her script and the 'embeddings' folder exists.")
+    index = None
+    doc_store = {}
 
-def generate_rag_answer(query, context_chunks):
+# --- CORE LOGIC ---
+
+def retrieve_docs(query, top_k=3):
     """
-    Task 3.2: The System Prompt.
-    This forces the model to use ONLY the provided context.
+    Searches M1's FAISS index for the most relevant documents.
     """
+    if index is None:
+        return ["Error: Database not loaded."]
+
+    # 1. Convert query to vector
+    query_vector = embedding_model.encode([query]).astype("float32")
     
-    # 1. Define the Strict System Prompt
+    # 2. Normalize (M1 used Cosine Similarity/Inner Product, so we must normalize)
+    faiss.normalize_L2(query_vector)
+    
+    # 3. Search FAISS
+    distances, indices = index.search(query_vector, top_k)
+    
+    # 4. Fetch actual text from doc_store
+    results = []
+    for idx in indices[0]:
+        # FAISS returns -1 if it finds nothing
+        if idx != -1:
+            # We must convert numpy int to string key for JSON lookup
+            doc_id = str(idx) 
+            if doc_id in doc_store:
+                results.append(doc_store[doc_id]["text"])
+    
+    return results
+
+def generate_rag_answer(query):
+    """
+    Full RAG Pipeline: Retrieval + Generation
+    """
+    # Step 1: Retrieve context
+    retrieved_chunks = retrieve_docs(query)
+    
+    if not retrieved_chunks:
+        return "I couldn't find any relevant information in the database."
+    
+
+    # Step 2: System Prompt
     template = """
     You are a helpful AI assistant for a university project.
     
     INSTRUCTIONS:
     1. Answer the user's question based ONLY on the context provided below.
-    2. If the answer is not in the context, say "I don't have enough information in my database."
-    3. Do not make up facts.
+    2. If the answer is not in the context, say "I don't have enough information."
+    3. Citation: If you use a specific fact, try to mention the source if available.
     
     CONTEXT:
     {context}
@@ -47,13 +93,10 @@ def generate_rag_answer(query, context_chunks):
     """
     
     prompt = ChatPromptTemplate.from_template(template)
-    
-    # 2. Create the Chain (Prompt -> LLM -> String Output)
     chain = prompt | llm | StrOutputParser()
     
-    # 3. Invoke the chain
-    # Join the list of chunks into one big string
-    context_text = "\n\n".join(context_chunks)
+    # Join chunks for the LLM
+    context_text = "\n\n".join(retrieved_chunks)
     
     response = chain.invoke({
         "context": context_text,
@@ -62,19 +105,46 @@ def generate_rag_answer(query, context_chunks):
     
     return response
 
-# --- TEST FUNCTION (Run this file directly to test) ---
+
+def learn_new_information(user_correction):
+    """
+    BONUS TASK: Adds user corrections to the database dynamically.
+    """
+    global index, doc_store
+    
+    print(f"🧠 Learning: {user_correction[:30]}...")
+    
+    # 1. Create new ID (simple increment)
+    new_id = str(len(doc_store))
+    
+    # 2. Embed the text
+    new_embedding = embedding_model.encode([user_correction]).astype("float32")
+    faiss.normalize_L2(new_embedding)
+    
+    # 3. Add to FAISS Index
+    index.add(new_embedding)
+    
+    # 4. Add to Doc Store
+    doc_store[new_id] = {"text": user_correction, "source": "User Feedback"}
+    
+    # 5. Save updates to disk (So it remembers next time!)
+    faiss.write_index(index, INDEX_FILE)
+    with open(DOC_STORE_FILE, "w", encoding="utf-8") as f:
+        json.dump(doc_store, f, indent=4)
+        
+    return "Thank you! I have learned this new information."
+
+
+# --- TEST FUNCTION ---
 if __name__ == "__main__":
-    user_query = "How does RAG work?"
-    
-    # Step 1: Get (Mock) Data
-    # Later, you will replace this line with: retrieved_docs = mariam_search_function(user_query)
-    retrieved_docs = mock_retrieve(user_query) 
-    
-    # Step 2: Generate Answer
-    final_answer = generate_rag_answer(user_query, retrieved_docs)
+    # Test with a query relevant to dataset
+    user_query = "How fast can modern computers calculate?"
     
     print("-" * 30)
     print(f"❓ Query: {user_query}")
     print("-" * 30)
-    print(f"💡 Generated Answer:\n{final_answer}")
+    
+    answer = generate_rag_answer(user_query)
+    
+    print(f"💡 Generated Answer:\n{answer}")
     print("-" * 30)

@@ -8,3 +8,7 @@ pypdf
 numpy 
 nltk 
 sentence-transformers
+
+faiss-cpu
+sentence-transformers
+numpy
