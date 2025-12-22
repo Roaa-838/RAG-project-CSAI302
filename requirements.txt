@@ -1,8 +1,10 @@
-langchain
 langchain-groq
-langchain-openai
-langchain-community
-python-dotenv
-chromadb
-faiss-cpu
-pypdf
+langchain-openai 
+langchain-community 
+python-dotenv 
+chromadb 
+faiss-cpu 
+pypdf 
+numpy 
+nltk 
+sentence-transformers
