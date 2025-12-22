@@ -82,7 +82,7 @@ streamlit run src/app.py
 The application will open in your browser at http://localhost:8501
 
 ## Project Structure
-
+```text
 RAG-Project/
 ├── 📂 data/               # Raw PDF/Text files
 ├── 📂 embeddings/         # FAISS index and metadata (The "Memory")
@@ -94,7 +94,7 @@ RAG-Project/
 ├── .gitignore             # Git ignore rules
 ├── requirements.txt       # Python dependencies
 └── README.md              # Project documentation
-
+```
 
 ## 🧪 Testing & Demonstration
 Sample Query 1: "How fast can modern computers calculate?"
