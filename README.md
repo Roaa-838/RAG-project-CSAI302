@@ -1,18 +1,18 @@
-# 🧠 AI-Powered RAG System (CSAI 302 Project)
+# AI-Powered RAG System (CSAI 302 Project)
 
 > **Team Members:**
 > * **Mariam Alhaj:** Data & Infrastructure
 > * **Roaa Raafat:** Core Logic & RAG Engineering
 > * **Yousef ElDawayaty:** Frontend & Self-Learning System
 
-## 📖 Project Overview
+## Project Overview
 This project implements a **Retrieval-Augmented Generation (RAG)** system designed to answer user queries based on a specific knowledge base (Simple English Wikipedia). It combines a **Vector Database (FAISS)** for semantic search with a **Large Language Model (Llama 3.1-8b)** to generate accurate, context-aware responses.
 
 The system features a **Self-Learning Layer** that allows it to improve over time by incorporating user feedback and corrections directly into its memory.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 **Data Flow:**
 `PDF/Text Data` $\to$ `Preprocessing & Chunking` $\to$ `Embedding Model (all-MiniLM-L6-v2)` $\to$ `Vector DB (FAISS)` $\to$ `Retrieval` $\to$ `LLM Generation` $\to$ `Streamlit UI`
@@ -25,7 +25,7 @@ The system features a **Self-Learning Layer** that allows it to improve over tim
 
 ---
 
-## ✨ Features
+## Features
 
 ### 1. **Semantic Search & Retrieval**
 * Uses **Cosine Similarity** to find the most relevant document chunks, even if the user doesn't use exact keywords.
@@ -42,7 +42,7 @@ The system features a **Self-Learning Layer** that allows it to improve over tim
 
 ---
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### **Prerequisites**
 * Python 3.8+
@@ -84,9 +84,9 @@ The application will open in your browser at http://localhost:8501
 ## Project Structure
 ```text
 RAG-Project/
-├── 📂 data/               # Raw PDF/Text files
-├── 📂 embeddings/         # FAISS index and metadata (The "Memory")
-├── 📂 src/
+├──  data/               # Raw PDF/Text files
+├──  embeddings/         # FAISS index and metadata (The "Memory")
+├──  src/
 │   ├── app.py             # Streamlit UI (Frontend)
 │   ├── ingest.py          # Database creation script 
 │   └── rag_backend.py     # Core RAG Logic & Self-Learning 
@@ -96,13 +96,13 @@ RAG-Project/
 └── README.md              # Project documentation
 ```
 
-## 🧪 Testing & Demonstration
+##  Testing & Demonstration
 Sample Query 1: "How fast can modern computers calculate?"
 
 * Result: Retrieves facts about Pi calculation speed (31.4 trillion digits).
-* Status: ✅ Verified
+* Status: Verified
 
 Sample Query 2: "How much faster is light compared to the Earth?"
 
 * Result: Retrieves the specific comparison factor (10,210 times faster).
-* Status: ✅ Verified
+* Status:  Verified
