@@ -10,44 +10,37 @@ from langchain_groq import ChatGroq
 
 # 1. Load Environment & Constants
 load_dotenv()
-EMBEDDINGS_DIR = "embeddings" # Relative path (works on everyone's machine)
+EMBEDDINGS_DIR = "embeddings" 
 INDEX_FILE = os.path.join(EMBEDDINGS_DIR, "wiki_faiss.index")
 DOC_STORE_FILE = os.path.join(EMBEDDINGS_DIR, "doc_store.json")
 
 # 2. Setup LLM (The Brain)
 llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0)
 
-# 3. Setup Embedding Model (The Translator)
-# We must use the SAME model M1 used to create the database
-print("⏳ Loading embedding model...")
+# 3. Setup Embedding Model 
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # 4. Load the Vector Database (The Memory)
-print("⏳ Loading Vector Database...")
 try:
     index = faiss.read_index(INDEX_FILE)
     with open(DOC_STORE_FILE, "r", encoding="utf-8") as f:
         doc_store = json.load(f)
-    print("✅ Database loaded successfully!")
+    print("Database loaded successfully")
 except Exception as e:
-    print(f"❌ Error loading database: {e}")
-    print("⚠️ Make sure M1 has run her script and the 'embeddings' folder exists.")
+    print(f"Error loading database: {e}")
     index = None
     doc_store = {}
 
 # --- CORE LOGIC ---
 
 def retrieve_docs(query, top_k=3):
-    """
-    Searches M1's FAISS index for the most relevant documents.
-    """
     if index is None:
         return ["Error: Database not loaded."]
 
     # 1. Convert query to vector
     query_vector = embedding_model.encode([query]).astype("float32")
     
-    # 2. Normalize (M1 used Cosine Similarity/Inner Product, so we must normalize)
+    # 2. Normalize 
     faiss.normalize_L2(query_vector)
     
     # 3. Search FAISS
@@ -56,9 +49,9 @@ def retrieve_docs(query, top_k=3):
     # 4. Fetch actual text from doc_store
     results = []
     for idx in indices[0]:
-        # FAISS returns -1 if it finds nothing
+        # returns -1 if it finds nothing
         if idx != -1:
-            # We must convert numpy int to string key for JSON lookup
+            # convert numpy int to string key for JSON lookup
             doc_id = str(idx) 
             if doc_id in doc_store:
                 results.append(doc_store[doc_id]["text"])
@@ -108,7 +101,7 @@ def generate_rag_answer(query):
 
 def learn_new_information(user_correction):
     """
-    BONUS TASK: Adds user corrections to the database dynamically.
+    self learning: Adds user corrections to the database dynamically.
     """
     global index, doc_store
     
@@ -127,12 +120,12 @@ def learn_new_information(user_correction):
     # 4. Add to Doc Store
     doc_store[new_id] = {"text": user_correction, "source": "User Feedback"}
     
-    # 5. Save updates to disk (So it remembers next time!)
+    # 5. Save updates to disk 
     faiss.write_index(index, INDEX_FILE)
     with open(DOC_STORE_FILE, "w", encoding="utf-8") as f:
         json.dump(doc_store, f, indent=4)
         
-    return "Thank you! I have learned this new information."
+    return "I have learned this new information"
 
 
 # --- TEST FUNCTION ---
@@ -141,10 +134,10 @@ if __name__ == "__main__":
     user_query = "How fast can modern computers calculate?"
     
     print("-" * 30)
-    print(f"❓ Query: {user_query}")
+    print(f"Query: {user_query}")
     print("-" * 30)
     
     answer = generate_rag_answer(user_query)
     
-    print(f"💡 Generated Answer:\n{answer}")
+    print(f"Generated Answer:\n{answer}")
     print("-" * 30)

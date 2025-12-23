@@ -7,8 +7,10 @@ import json
 
 nltk.download('punkt')
 
-DATA_PATH = r"C:\Users\laptop.house\RAG-project-CSAI302\dataset\AllCombined.txt"
-PROCESSED_DIR = r"C:\Users\laptop.house\RAG-project-CSAI302\processed_data"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(BASE_DIR) 
+DATA_PATH = os.path.join(ROOT_DIR, "dataset", "AllCombined.txt")
+PROCESSED_DIR = os.path.join(ROOT_DIR, "processed_data")
 
 os.makedirs(PROCESSED_DIR, exist_ok=True)
 

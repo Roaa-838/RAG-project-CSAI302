@@ -4,8 +4,12 @@ import numpy as np
 import faiss
 from sentence_transformers import SentenceTransformer
 
-PROCESSED_DIR = r"C:\Users\laptop.house\RAG-project-CSAI302\processed_data"
-EMBEDDINGS_DIR = r"C:\Users\laptop.house\RAG-project-CSAI302\embeddings"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOT_DIR = os.path.dirname(BASE_DIR)
+
+PROCESSED_DIR = os.path.join(ROOT_DIR, "processed_data")
+EMBEDDINGS_DIR = os.path.join(ROOT_DIR, "embeddings")
+
 os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
 
 # Load documents
