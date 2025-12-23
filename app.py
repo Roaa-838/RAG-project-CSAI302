@@ -5,6 +5,7 @@ st.title("Team X RAG System")
 
 query = st.text_input("Enter your query")
 
+
 if st.button("Search"):
     if query:
         # Retrieve docs for sources
