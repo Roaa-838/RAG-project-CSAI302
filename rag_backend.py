@@ -105,7 +105,7 @@ def learn_new_information(user_correction):
     """
     global index, doc_store
     
-    print(f"🧠 Learning: {user_correction[:30]}...")
+    print(f"Learning: {user_correction[:30]}...")
     
     # 1. Create new ID (simple increment)
     new_id = str(len(doc_store))
